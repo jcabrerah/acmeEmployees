@@ -13,10 +13,10 @@ if __name__ == '__main__':
     employees = list()
     for datum in data:
         if datum.__len__() > 1:
-            employee = Employee(datum[0])
-            employee.calculatePayment(datum[1:])
-            employees.append(employee)
+            employee = Employee(datum[0], datum[1:])
+            employee.calculatePayment()
             printOutput(employee)
+            employees.append(employee)
         else:
             printError(datum[0])
     pass

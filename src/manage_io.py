@@ -57,7 +57,11 @@ def loadDataInput(inFileName):
 
 
 def printOutput(employee):
-    print('The amount to pay ' + employee.name + ' is: ' + str(employee.getPayment()) + ' USD')
+    error = ''
+    if employee.overHoursError == 1:
+        error = ', over hours error in some day'
+
+    print('The amount to pay ' + employee.name + ' is: ' + str(employee.getPayment()) + ' USD. ' + error)
 
 
 def printError(line):

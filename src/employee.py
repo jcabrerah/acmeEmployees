@@ -1,6 +1,7 @@
 import re
-from datetime import datetime
-from variables import weekDays, weekendDays, timeRange1, timeRange2, timeRange3, weekValues, weekendValues
+from datetime import datetime, timedelta
+from src.variables import weekDays, weekendDays, timeRange1, timeRange2, timeRange3, \
+    weekValues, weekendValues, calcPriceRange, subtractTimedelta
 
 class Employee:
     """
@@ -8,64 +9,77 @@ class Employee:
     we create this class, Because we want to increase the functionalities more than just calculating the payment
     in the future.
     """
-    def __init__(self, name):
+    def __init__(self, name, timeWorked=['MO08:00-8:00']):
         self.name = name
         self.__payment = 0
         self.timeRange1 = timeRange1
         self.timeRange2 = timeRange2
         self.timeRange3 = timeRange3
+        self.__timeWorked = timeWorked
+        self.overHoursError = 0
 
-    def calculatePayment(self, data):
+    def calculatePayment(self):
         """
         this function calculates the payment
         """
         total = 0
-        for dateStr in data:
+        for dateStr in self.__timeWorked:
             hourStart, hourEnd = self.hoursFromStr(dateStr)
+            if hourEnd == timedelta(0):
+                hourEnd = timedelta(days=1)
             timeStartRange, timeEndRange = self.hourTimeRange(hourStart, hourEnd)
             timeValues = {'hourS': hourStart, 'hourE': hourEnd, 'startRange': timeStartRange, 'endRange': timeEndRange}
             if any(map(dateStr.__contains__, weekDays)):
-                total += self.calculateValue(timeValues, weekValues)
+                overHoursError, priceRange=self.calculateValue(timeValues, weekValues)
+                if overHoursError == 0:
+                    total += priceRange
+                else:
+                    self.overHoursError = overHoursError
             elif any(map(dateStr.__contains__, weekendDays)):
-                total += self.calculateValue(timeValues, weekendValues)
+                overHoursError, priceRange = self.calculateValue(timeValues, weekendValues)
+                if overHoursError == 0:
+                    total += priceRange
+                else:
+                    self.overHoursError = overHoursError
         self.__payment = total
+
 
     def calculateValue(self, timeValues, hourPrices):
         priceRange = 0
-        if timeValues['startRange'] == 1 and timeValues['endRange'] == 1:
-            priceRange = ((timeValues['hourE'] - timeValues['hourS']).seconds/3600)*hourPrices[0]
-        if timeValues['startRange'] == 1 and timeValues['endRange'] == 2:
-            pricePart1 = ((timeValues['hourE'] - self.timeRange1[1]).seconds/3600)*hourPrices[1]
-            pricePart2 = ((self.timeRange1[1] - timeValues['hourS']).seconds/3600)*hourPrices[0]
-            priceRange = pricePart1 + pricePart2
-        if timeValues['startRange'] == 1 and timeValues['endRange'] == 3:
-            pricePart1 = ((timeValues['hourE'] - self.timeRange2[1]).seconds/3600)*hourPrices[2]
-            pricePart2 = 9 * hourPrices[1]
-            pricePart3 = ((self.timeRange1[1] - timeValues['hourS']).seconds/3600)*hourPrices[0]
-            priceRange = pricePart1 + pricePart2 + pricePart3
-        if timeValues['startRange'] == 2 and timeValues['endRange'] == 2:
-            priceRange = ((timeValues['hourE'] - timeValues['hourS']).seconds/3600)*hourPrices[1]
-        if timeValues['startRange'] == 2 and timeValues['endRange'] == 3:
-            pricePart1 = ((timeValues['hourE'] - self.timeRange2[1]).seconds/3600)*hourPrices[2]
-            pricePart2 = ((self.timeRange2[1] - timeValues['hourS']).seconds/3600)*hourPrices[1]
-            priceRange = pricePart1 + pricePart2
-        if timeValues['startRange'] == 2 and timeValues['endRange'] == 1:
-            pricePart1 = ((timeValues['hourE'] - self.timeRange1[0]).seconds/3600)*hourPrices[0]
-            pricePart2 = 6 * hourPrices[2]
-            pricePart3 = ((self.timeRange2[1] - timeValues['hourS']).seconds/3600)*hourPrices[1]
-            priceRange = pricePart1 + pricePart2 + pricePart3
-        if timeValues['startRange'] == 3 and timeValues['endRange'] == 3:
-            priceRange = ((timeValues['hourE'] - timeValues['hourS']).seconds/3600)*hourPrices[2]
-        if timeValues['startRange'] == 3 and timeValues['endRange'] == 1:
-            pricePart1 = ((timeValues['hourE'] - self.timeRange1[0]).seconds/3600)*hourPrices[0]
-            pricePart2 = ((self.timeRange3[1] - timeValues['hourS']).seconds/3600)*hourPrices[2]
-            priceRange = pricePart1 + pricePart2
-        if timeValues['startRange'] == 3 and timeValues['endRange'] == 2:
-            pricePart1 = ((timeValues['hourE'] - self.timeRange2[1]).seconds/3600)*hourPrices[1]
-            pricePart2 = 9 * hourPrices[0]
-            pricePart3 = ((self.timeRange3[1] - timeValues['hourS']).seconds/3600)*hourPrices[2]
-            priceRange = pricePart1 + pricePart2 + pricePart3
-        return priceRange
+        overHoursError = 0
+        index = timeValues['endRange'] - 1
+        if timeValues['startRange'] == timeValues['endRange']:
+            if timeValues['hourS'] > timeValues['hourE']:
+                overHoursError = 1
+            priceRange = calcPriceRange(timeValues['hourE'], timeValues['hourS'], hourPrices[index])
+
+        if timeValues['startRange'] == 1 and 1 < timeValues['endRange'] < 4:
+            b = self.timeRange1[1]
+            pricePart3 = 0
+            if timeValues['endRange'] == 3:
+                b = self.timeRange2[1]
+                pricePart3 = calcPriceRange(self.timeRange2[1], self.timeRange1[1], hourPrices[1])
+            priceRange = calcPriceRange(timeValues['hourE'], b, hourPrices[index]) + \
+                         calcPriceRange(self.timeRange1[1], timeValues['hourS'], hourPrices[0]) + pricePart3
+
+        if timeValues['startRange'] == 2 and 0 < timeValues['endRange'] < 4 and timeValues['endRange'] != 2:
+            b = self.timeRange3[1]
+            pricePart3 = calcPriceRange(self.timeRange3[1], self.timeRange2[1], hourPrices[2])
+            if timeValues['endRange'] == 3:
+                b = self.timeRange2[1]
+                pricePart3 = 0
+            priceRange = calcPriceRange(timeValues['hourE'], b, hourPrices[index]) + \
+                         calcPriceRange(self.timeRange2[1], timeValues['hourS'], hourPrices[1]) + pricePart3
+
+        if timeValues['startRange'] == 3 and timeValues['endRange'] < 3:
+            b = self.timeRange1[0]
+            pricePart3 = 0
+            if timeValues['endRange'] == 2:
+                b = self.timeRange1[1]
+                pricePart3 = calcPriceRange(self.timeRange1[1], self.timeRange3[1], hourPrices[0])
+            priceRange = calcPriceRange(timeValues['hourE'], b, hourPrices[index]) + \
+                         calcPriceRange(self.timeRange3[1], timeValues['hourS'], hourPrices[2]) + pricePart3
+        return overHoursError, priceRange
 
 
     def hoursFromStr(self, str):
@@ -82,7 +96,7 @@ class Employee:
             timeStartRange = 3
         elif hourStart >= self.timeRange2[0]:
             timeStartRange = 2
-        elif hourStart >= self.timeRange1[0]:
+        elif hourStart >= self.timeRange1[0] - timedelta(minutes=1):
             timeStartRange = 1
 
         if hourEnd <= self.timeRange1[1]:
@@ -95,6 +109,10 @@ class Employee:
 
     def getPayment(self):
         return self.__payment
+
+    def setTimeWorked(self, timeWorked):
+        self.__timeWorked = timeWorked
+        self.overHoursError = 0
 
 
 
