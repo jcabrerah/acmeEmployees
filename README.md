@@ -54,9 +54,13 @@ At the beginning, I did not think of using classes since there are other ways to
 The last stage in the development was testing, which was developed with unittest, due to the errors evidenced by this stage some improvements were made in the code to solve them.
 
 ## Usage
-python manage_payments.py
+Enter to src folder and type the following command:
 
-test:
-python -m unittest test.test_manageio.TestManageio
+    python manage_payments.py
 
+Test:
 
+    python -m unittest test.test_manageio.TestManageio
+    python -m unittest test.test_employee.TestEmployee
+
+If python version 2 and 3 are installed use python3 as command.
