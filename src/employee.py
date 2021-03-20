@@ -1,6 +1,6 @@
 import re
 from datetime import datetime, timedelta
-from src.variables import weekDays, weekendDays, timeRange1, timeRange2, timeRange3, \
+from variables import weekDays, weekendDays, timeRange1, timeRange2, timeRange3, \
     weekValues, weekendValues, calcPriceRange, subtractTimedelta
 
 class Employee:

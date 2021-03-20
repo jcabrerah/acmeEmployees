@@ -1,8 +1,8 @@
 import unittest
-from src.manage_io import *
+from manage_io import *
 
 
-class TestEmployee(unittest.TestCase):
+class TestManageio(unittest.TestCase):
 
     def test_validateInput(self):
         lines = ['ASTRID=MO10:00-12:00,TH12:00-14:00,SU20:00-21:00',

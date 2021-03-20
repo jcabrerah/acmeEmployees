@@ -4,7 +4,7 @@
 
 - Python version 3.8
 
-## solution overview
+## Solution overview
 The program is made up of different modules, a main administration module "manage_payments", which contains the main function and it is in charge of controlling the flow of the program.
 
 The program is also constituted by a module for the management of the inputs and outputs "manage_io", which is responsible for loading the data from a text file, then validate these data to ensure that they are correct and finally are split to be sent to the next phase, this module also contains the functions that are responsible for printing on the console the results of the execution of the program.
@@ -13,7 +13,7 @@ The module where the calculations are made is called "employee", this contains t
 
 The calculated value to be paid is calculated at different time intervals but there are some restrictions.
 
-###Restrictions:
+### Restrictions:
 There is a restriction on the time ranges:
 
 If initial data of the problem is "RENE=MO22:00-20:00"
@@ -22,7 +22,7 @@ which is not allowed, in this case the data is not computed, but the remaining i
 
 "The amount to pay MARIA is: 55.0 USD, over hours error in some day"
 
-##architecture
+## Architecture
 The type of architecture used is pipeline, for this case it is sufficient 
 because based on certain information, we must validate it, 
 transform it, calculate a result and display the result.
@@ -45,7 +45,18 @@ are performed, which corresponds to the third and fourth step.
 
 The fifth step was poorly implemented because in the statement there was no requirement to save the results, it was added for future expansion, now we simply save the instances of Employee in a list as a reference.
 
-##approach and metodology
+## Approach and methodology
+
+The methodology used in this project focuses on the functionality of the program, the first approach was to create a functional portotype, which was improved iteratively.
+It could be said that it is a lean methodology because of the limited resources, in this case "time", because this methodology seeks efficiency, which describes the approach taken at the beginning. It can also be said that it is an agile methodology since it takes into account the iteration and the fast delivery of a functional product, although in this methodology the work of multidisciplinary teams is weighted, which is not the case here. 
+At the beginning a small plan was designed, it was determined that for this project a pipeline architecture was going to be used since in my opinion it is the one that best fits this problem, it was raised due to the requirements of the input phase problem and the need to validate the information.
+At the beginning, I did not think of using classes since there are other ways to solve the problem just as valid, but I used this approach in the Employee class thinking in future improvements of the program since more information can be added to each instance of the class, making its management simpler.
+The last stage in the development was testing, which was developed with unittest, due to the errors evidenced by this stage some improvements were made in the code to solve them.
 
 ## Usage
+python manage_payments.py
+
+test:
+python -m unittest test.test_manageio.TestManageio
+
 
